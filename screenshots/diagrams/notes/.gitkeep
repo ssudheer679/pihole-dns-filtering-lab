@@ -1,1 +1,50 @@
+# Troubleshooting Notes
 
+## Summary
+
+This project involved deploying Pi-hole on an Ubuntu Server VM in VMware and configuring it to provide network-wide DNS filtering. The final working design used Pi-hole as the client-facing DNS and DHCP server, with Cloudflare Family as the upstream DNS resolver.
+
+## Key Issues Encountered
+
+### 1. VMware bridged networking
+The VM was not consistently reachable on the local network during early setup. This was resolved by validating the bridged adapter configuration in VMware and binding it to the correct physical wireless adapter.
+
+### 2. Static IP consistency
+Addressing became confusing when DHCP-based behavior and manual addressing were mixed during testing. This was resolved by assigning the Pi-hole VM a stable static IP inside Ubuntu.
+
+### 3. Router DNS behavior
+The router DNS settings did not behave as expected for client-side filtering. Instead of relying on the router as the filtering point, the design was changed so that clients use Pi-hole directly for DNS.
+
+### 4. DHCP migration
+Moving DHCP service from the router to Pi-hole required careful sequencing. Router DHCP had to remain enabled until Pi-hole DHCP was fully configured and validated.
+
+### 5. DNS path validation
+It was necessary to separate and verify the roles of:
+- client DNS
+- router DNS
+- Pi-hole upstream DNS
+- VM operating system DNS
+
+This made it possible to identify where incorrect DNS behavior was occurring.
+
+## Validation Commands Used
+
+### Ubuntu
+- `ip a`
+- `ip route`
+- `ping`
+- `dig`
+- `systemctl status pihole-FTL`
+- `ss -tulpn | grep :53`
+
+### Windows
+- `ipconfig /all`
+- `ipconfig /release`
+- `ipconfig /renew`
+- `ipconfig /flushdns`
+- `nslookup
+- `ping`
+
+## Final Takeaway
+
+The most important lesson from this project was that DNS filtering depends on correct end-to-end design. Installing Pi-hole alone is not enough; the client DNS path, DHCP behavior, VM networking, and upstream resolver path all have to work together consistently.
